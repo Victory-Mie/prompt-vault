@@ -25,6 +25,7 @@ model User {
   testRecords   TestRecord[]
   teams         TeamMember[]
   ownedTeams    Team[]    @relation("TeamOwner")
+  templates     Template[]
 }
 
 model ApiKey {
@@ -67,7 +68,7 @@ model Tag {
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prompts   Prompt[]
+  prompts   Prompt[] @relation("PromptTags")
 
   @@unique([userId, name])
   @@index([userId])
@@ -93,6 +94,7 @@ model Prompt {
   tags        Tag[]    @relation("PromptTags")
   versions    PromptVersion[]
   testRecords TestRecord[]
+  templates   Template[]
 
   @@index([userId])
   @@index([folderId])
