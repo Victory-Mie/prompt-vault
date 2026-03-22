@@ -1,16 +1,27 @@
 {
   "project": "Prompt Vault",
   "goal": "你的 Prompt 知识库与调优实验室",
-  "phase": "Sprint-1",
+  "phase": "V1.1 - 模板市场 + 导入导出",
   "start_time": "2026-03-11",
-  "heartbeat_count": 12,
-  "total_time": "6小时0分",
+  "heartbeat_count": 38,
+  "total_time": "10小时",
   "tasks": {
-    "MVP功能": {"status": "completed", "assignee": "lily"},
-    "编译修复": {"status": "in_progress", "assignee": "lily"}
+    "Sprint-1": {"status": "completed"},
+    "Sprint-2 优化": {"status": "completed"},
+    "市场调研 (Sophie)": {"status": "completed"},
+    "产品规划 (Emma)": {"status": "completed"},
+    "技术方案 (Lily)": {"status": "completed"},
+    "数据库 Schema": {"status": "completed"},
+    "官方模板撰写": {"status": "completed", "note": "30+ 模板"},
+    "react-markdown 安装": {"status": "completed"},
+    "模板 API": {"status": "completed"},
+    "导入/导出 API": {"status": "completed"},
+    "前端页面": {"status": "completed"}
   },
   "subagents": {
-    "lily": {"status": "busy", "current_task": "编译修复", "progress": 100}
+    "emma": {"status": "idle"},
+    "lily": {"status": "idle"}
   },
-  "last_updated": "2026-03-12T17:36:00Z"
+  "last_updated": "2026-03-22T05:26:00Z",
+  "note": "V1.1 已完成。有未提交代码待处理。等待 V1.2 需求指令。"
 }

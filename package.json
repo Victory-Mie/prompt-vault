@@ -12,7 +12,7 @@
     "build:server": "nest build",
     "start": "npm run start:web & npm run start:server",
     "start:web": "next start",
-    "start:server": "node dist/server/main",
+    "start:server": "node dist/server/src/server/main",
     "lint": "next lint && nest lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
@@ -39,10 +39,13 @@
     "passport-local": "^1.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "zod": "^3.22.0",
     "zustand": "^4.4.0"
   },
   "devDependencies": {
+    "@nestjs/cli": "^11.0.16",
     "@tailwindcss/postcss": "^4.2.1",
     "@types/bcrypt": "^5.0.2",
     "@types/node": "^20.10.0",
@@ -57,6 +60,7 @@
     "postcss": "^8.5.8",
     "prisma": "^5.7.0",
     "tailwindcss": "^4.2.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.0"
   }
 }

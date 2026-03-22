@@ -12,9 +12,14 @@ interface SearchResult {
   description: string | null
   isPinned: boolean
   isFavorite: boolean
+  usageCount: number
+  createdAt: string
+  updatedAt: string
   tags: { id: string; name: string; color: string }[]
   folder: { id: string; name: string } | null
 }
+
+type SortOption = 'relevance' | 'newest' | 'oldest' | 'mostUsed' | 'az' | 'za'
 
 interface Suggestion {
   type: string
@@ -52,6 +57,12 @@ function SearchPageContent() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [hotData, setHotData] = useState<HotData | null>(null)
+  
+  // Filter and Sort state
+  const [sortBy, setSortBy] = useState<SortOption>('relevance')
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedFolder, setSelectedFolder] = useState<string | null>(null)
+  const [showFilters, setShowFilters] = useState(false)
   
   const searchInputRef = useRef<HTMLInputElement>(null)
   const suggestionRef = useRef<HTMLDivElement>(null)

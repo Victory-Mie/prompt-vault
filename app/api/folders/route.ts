@@ -7,6 +7,7 @@ const prisma = new PrismaClient()
 
 // GET /api/folders - List all folders for current user
 // GET /api/folders?parentId=xxx - Get child folders
+// GET /api/folders?all=true - Get all folders (flat list)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -17,6 +18,26 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url)
     const parentId = searchParams.get('parentId')
+    const getAll = searchParams.get('all') === 'true'
+
+    // If getAll is true, return all folders as flat list
+    if (getAll) {
+      const folders = await prisma.folder.findMany({
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          id: true,
+          name: true,
+          parentId: true,
+        },
+        orderBy: [
+          { sortOrder: 'asc' },
+          { name: 'asc' },
+        ],
+      })
+      return NextResponse.json(folders)
+    }
 
     const where: any = {
       userId: session.user.id,

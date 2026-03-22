@@ -20,6 +20,11 @@ export async function GET(request: NextRequest) {
     const isFavorite = searchParams.get('isFavorite')
     const search = searchParams.get('search')
 
+    // Handle export request
+    if (searchParams.get('export') === 'true') {
+      return handleExport(session.user.id, folderId)
+    }
+
     const where: any = {
       userId: session.user.id,
     }
@@ -65,12 +70,20 @@ export async function GET(request: NextRequest) {
 }
 
 // POST /api/prompts - Create a new prompt
+// POST /api/prompts/import - Import prompts from JSON
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    
+    // Handle import request
+    if (searchParams.get('import') === 'true') {
+      return handleImport(request, session.user.id)
     }
 
     const body = await request.json()
@@ -112,5 +125,121 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error creating prompt:', error)
     return NextResponse.json({ error: 'Failed to create prompt' }, { status: 500 })
+  }
+}
+
+// Export prompts to JSON
+async function handleExport(userId: string, folderId?: string | null) {
+  try {
+    const where: any = { userId }
+    if (folderId) {
+      where.folderId = folderId
+    }
+
+    const prompts = await prisma.prompt.findMany({
+      where,
+      include: {
+        tags: true,
+      },
+    })
+
+    const exportData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      count: prompts.length,
+      prompts: prompts.map((p) => ({
+        title: p.title,
+        content: p.content,
+        description: p.description,
+        modelConfig: p.modelConfig,
+        isPublic: p.isPublic,
+        isFavorite: p.isFavorite,
+        isPinned: p.isPinned,
+        tags: p.tags.map((t) => t.name),
+      })),
+    }
+
+    return NextResponse.json(exportData)
+  } catch (error) {
+    console.error('Error exporting prompts:', error)
+    return NextResponse.json({ error: 'Failed to export prompts' }, { status: 500 })
+  }
+}
+
+// Import prompts from JSON
+async function handleImport(request: NextRequest, userId: string) {
+  try {
+    const body = await request.json()
+    const { prompts, folderId } = body
+
+    if (!prompts || !Array.isArray(prompts)) {
+      return NextResponse.json({ error: 'Invalid import data' }, { status: 400 })
+    }
+
+    const errors: string[] = []
+    let successCount = 0
+
+    // If folderId is provided, verify it belongs to the user
+    if (folderId) {
+      const folder = await prisma.folder.findFirst({
+        where: { id: folderId, userId },
+      })
+
+      if (!folder) {
+        return NextResponse.json({ error: 'Folder not found' }, { status: 404 })
+      }
+    }
+
+    for (let i = 0; i < prompts.length; i++) {
+      const item = prompts[i]
+      
+      try {
+        // Handle tags
+        const tagConnections: { id: string }[] = []
+        if (item.tags && item.tags.length > 0) {
+          for (const tagName of item.tags) {
+            let tag = await prisma.tag.findFirst({
+              where: { userId, name: tagName },
+            })
+
+            if (!tag) {
+              tag = await prisma.tag.create({
+                data: { userId, name: tagName },
+              })
+            }
+            tagConnections.push({ id: tag.id })
+          }
+        }
+
+        await prisma.prompt.create({
+          data: {
+            title: item.title,
+            content: item.content,
+            description: item.description || null,
+            folderId: folderId || null,
+            modelConfig: item.modelConfig || {},
+            isPublic: item.isPublic || false,
+            isFavorite: item.isFavorite || false,
+            isPinned: item.isPinned || false,
+            userId,
+            tags: {
+              connect: tagConnections,
+            },
+          },
+        })
+        successCount++
+      } catch (error) {
+        errors.push(`Prompt "${item.title}" (index ${i}): ${(error as Error).message}`)
+      }
+    }
+
+    return NextResponse.json({
+      success: successCount > 0,
+      count: successCount,
+      errors,
+    })
+  } catch (error) {
+    console.error('Error importing prompts:', error)
+    return NextResponse.json({ error: 'Failed to import prompts' }, { status: 500 })
   }
 }
